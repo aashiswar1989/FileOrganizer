@@ -13,7 +13,7 @@ class FileOrganizer:
             self.logger.error(f'Source directory {self.source_dir.name} does not exist')
             return []
         
-        files = list(self.source_dir.glob("*"))
+        files = [file for file in list(self.source_dir.glob("*")) if file.is_file()]
         self.logger.info("Listed all files in the given source directory")
         return files
     
@@ -22,20 +22,25 @@ class FileOrganizer:
         self.logger.info("Retrieved the extension of all files in the given source directory")
         return extensions
     
+    def get_folder_name(self, ext: str) -> str:
+        if ext in ['.jpg', '.jpeg', '.png', '.gif']:
+                folder_name = 'Images'
+        elif ext in ['.pdf', '.docx', '.txt', '.xlsx', '.csv', '.pptx']:
+            folder_name = 'Documents'
+        elif ext in ['.mp4', '.avi', '.mkv', '.mov']:
+            folder_name = 'Videos'
+        elif ext in ['.mp3', '.wav', '.aac']:
+            folder_name = 'Audio'
+        elif ext in ['.zip', '.rar', '.tar', '.gz']:
+            folder_name = 'Archives'
+        else:
+            folder_name = 'Others'
+
+        return folder_name
+    
     def create_folders(self, extensions: set):
         for ext in extensions:
-            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                folder_name = 'Images'
-            elif ext in ['.pdf', '.docx', '.txt', 'xlsx', '.csv', '.pptx']:
-                folder_name = 'Documents'
-            elif ext in ['.mp4', '.avi', '.mkv', '.mov']:
-                folder_name = 'Videos'
-            elif ext in ['.mp3', '.wav', '.aac']:
-                folder_name = 'Audio'
-            elif ext in ['.zip', '.rar', '.tar', '.gz']:
-                folder_name = 'Archives'
-            else:
-                folder_name = 'Others'
+            folder_name = self.get_folder_name(ext)
             
             folder_path = self.source_dir/folder_name
             create_folder(folder_path)
@@ -43,22 +48,16 @@ class FileOrganizer:
     def move_files(self, files: list):
         for file in files:
             ext = file.suffix
-            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                folder_name = 'Images'
-            elif ext in ['.pdf', '.docx', '.txt', 'xlsx', '.csv', '.pptx']:
-                folder_name = 'Documents'
-            elif ext in ['.mp4', '.avi', '.mkv', '.mov']:
-                folder_name = 'Videos'
-            elif ext in ['.mp3', '.wav', '.aac']:
-                folder_name = 'Audio'
-            elif ext in ['.zip', '.rar', '.tar', '.gz']:
-                folder_name = 'Archives'
-            else:
-                folder_name = 'Others'
+            folder_name = self.get_folder_name(ext)
 
             destination_dir = self.source_dir/folder_name
             destination_path = destination_dir/file.name
             self.logger.info(f'Destination path for file {file.name} is {destination_path}')
+
+            if destination_path.exists():
+                self.logger.warning(f'''File {file.name} already exists in {destination_dir.name}. Skipping file move. 
+                                    Rename the file or remove the existing file to move {file.name} to {destination_dir.name}''')
+                continue
 
             shutil.move(str(file), str(destination_path))
             self.logger.info(f"File {file.name} moved from {self.source_dir.name} to {destination_dir.name}")
