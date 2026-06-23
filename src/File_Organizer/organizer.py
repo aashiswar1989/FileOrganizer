@@ -45,7 +45,7 @@ class FileOrganizer:
             folder_path = self.source_dir/folder_name
             create_folder(folder_path)
 
-    def move_files(self, files: list):
+    def move_files(self, files: list, dry_run:bool):
         for file in files:
             ext = file.suffix
             folder_name = self.get_folder_name(ext)
@@ -58,6 +58,9 @@ class FileOrganizer:
                 self.logger.warning(f'''File {file.name} already exists in {destination_dir.name}. Skipping file move. 
                                     Rename the file or remove the existing file to move {file.name} to {destination_dir.name}''')
                 continue
+
+            if dry_run:
+                self.logger.info(f'[DRY RUN]\nFile {file.name} will be moved from {self.source_dir.name} to {destination_dir.name}')
 
             shutil.move(str(file), str(destination_path))
             self.logger.info(f"File {file.name} moved from {self.source_dir.name} to {destination_dir.name}")
