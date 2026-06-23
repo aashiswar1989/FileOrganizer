@@ -61,6 +61,7 @@ class FileOrganizer:
 
             if dry_run:
                 self.logger.info(f'[DRY RUN]\nFile {file.name} will be moved from {self.source_dir.name} to {destination_dir.name}')
+                continue
 
             shutil.move(str(file), str(destination_path))
             self.logger.info(f"File {file.name} moved from {self.source_dir.name} to {destination_dir.name}")
